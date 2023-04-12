@@ -33,18 +33,18 @@ public class MemberRepositoryV0 {
     public Member findById(String memberId) throws SQLException {
         String sql = "select * from member where member_id = ?";
         Connection con = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
 
         try {
             con = getConnection();
-            preparedStatement = con.prepareStatement(sql);
-            preparedStatement.setString(1, memberId);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.next()) {
+            pstmt = con.prepareStatement(sql);
+            pstmt.setString(1, memberId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
                 Member member = new Member();
-                member.setMemberId(resultSet.getString("member_id"));
-                member.setMoney(resultSet.getInt("money"));
+                member.setMemberId(rs.getString("member_id"));
+                member.setMoney(rs.getInt("money"));
                 return member;
             } else {
                 throw new NoSuchElementException("member not found memberId = " + memberId);
@@ -53,7 +53,26 @@ public class MemberRepositoryV0 {
             log.error("db error", e);
             throw e;
         } finally {
-            close(con, preparedStatement, resultSet);
+            close(con, pstmt, rs);
+        }
+    }
+
+    public void update(String memberId, int money) throws SQLException {
+        String sql = "update member set money=? where member_id=?";
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        try {
+            con = getConnection();
+            pstmt = con.prepareStatement(sql);
+            pstmt.setInt(1, money);
+            pstmt.setString(2, memberId);
+            int resultSize = pstmt.executeUpdate();
+            log.info("resultSize={}", resultSize);
+        } catch (SQLException e) {
+            log.error("db error", e);
+            throw e;
+        } finally {
+            close(con, pstmt, null);
         }
     }
 
